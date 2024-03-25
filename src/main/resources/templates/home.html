@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+	rel="stylesheet" />
+<title>Home</title>
+</head>
+
+<body>
+	<div class="container">
+		<div class="card text-center mt-4">
+			<div class="card-header">
+				<ul class="nav nav-tabs card-header-tabs">
+					<li class="nav-item"><a class="nav-link active"
+						aria-current="true" href="/">Home</a></li>
+					<li class="nav-item"><a class="nav-link" href="/adminPage">Admin
+							Page</a></li>
+				</ul>
+			</div>
+			<div class="card-body">
+				<h5 class="card-title">Reserve Your Table</h5>
+				<form id="bookTable" action="bookTable" method="GET"
+					class="needs-validation" novalidate>
+					<div class="mb-3 row">
+						<label for="username" class="col-sm-2 col-form-label">Name</label>
+						<div class="col-sm-7">
+							<input type="text" id="name" name="name" placeholder="Name"
+								class="form-control" required />
+						</div>
+					</div>
+					<div class="mb-3 row">
+						<label for="date" class="col-sm-2 col-form-label">Date</label>
+						<div class="col-sm-7">
+							<input type="date" id="date" name="date" placeholder="dd/MM/yyyy"
+								class="form-control" required />
+						</div>
+					</div>
+					<div class="mb-3 row">
+						<label for="time" class="col-sm-2 col-form-label">Time</label>
+						<div class="col-sm-7">
+							<select class="form-select" id="time" name="time" required>
+								<option value="" selected disabled>Select Time</option>
+							</select>
+						</div>
+					</div>
+					<div class="mb-3 row">
+						<label for="noGuests" class="col-sm-2 col-form-label"># of
+							Guests</label>
+						<div class="col-sm-7">
+							<input type="number" min="0" max="10" id="noGuests"
+								name="partySize" placeholder="0" value="0" class="form-control"
+								required />
+						</div>
+					</div>
+					<div class="mb-3 row text-success d-none" id="booking-successfull">
+						<div class="col-auto">Booking added successfully</div>
+					</div>
+					<div class="mb-3 row text-danger d-none" id="booking-error">
+						<div class="col-auto">Failed to add booking</div>
+					</div>
+					<div class="mb-3 row justify-content-end">
+						<div class="col-sm-4">
+							<input type="submit" class="btn btn-primary" value="Book Table" />
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<script
+		src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+		integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+		crossorigin="anonymous"></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+		integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+		crossorigin="anonymous"></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+	<script>
+        function validateForm(){
+            let isValid = true;
+
+                let nameVal = $('#name').val();
+                if (nameVal !== '') {
+                    $('#name').addClass('is-valid');
+                    $('#name').removeClass('is-invalid');
+                } else {
+                    $('#name').removeClass('is-valid');
+                    $('#name').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                let date = $('#date').val();
+                if (date !== '') {
+                    $('#date').addClass('is-valid');
+                    $('#date').removeClass('is-invalid');
+                } else {
+                    $('#date').removeClass('is-valid');
+                    $('#date').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                let timeVal = $('#time option:selected').val();
+                if (timeVal !== '') {
+                    $('#time').addClass('is-valid');
+                    $('#time').removeClass('is-invalid');
+                } else {
+                    $('#time').removeClass('is-valid');
+                    $('#time').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                let noGuestsVal = $('#noGuests').val();
+                if (noGuestsVal > 0) {
+                    $('#noGuests').addClass('is-valid');
+                    $('#noGuests').removeClass('is-invalid');
+                } else {
+                    $('#noGuests').removeClass('is-valid');
+                    $('#noGuests').addClass('is-invalid');
+                    isValid = false;
+                }
+                return isValid;
+        }
+        
+
+        $(function() {
+
+            //set min value for calendar to today
+            const today = new Date();
+            const formattedDate = today.getFullYear() + '-' 
+                                    + (today.getMonth() + 1).toString().padStart(2, '0') + '-' 
+                                    + today.getDate().toString().padStart(2, '0');
+            
+            $('#date').attr('min', formattedDate);
+
+            $('#date').on('change', function(){
+                //call ajax to get available times
+                var date = $('#date').val();
+                console.info(date);
+					$.ajax({
+                        type: 'GET', // Method to use (POST, GET, etc.)
+                        url: 'http://localhost:1337/mu/getAvailableTimes/'+date, // The server endpoint to send the form data
+                        dataType: 'json', // The type of data expected back from the server
+                        success: function (response) {
+							console.info(response);
+//time
+//<option value="10:00">10:00</option>
+//<option value="" selected disabled>Select Time</option>
+							$('#time').empty();
+							$('#time').append($('<option value="" selected disabled>Select Time</option>'));
+							response.forEach(function(item){		//JavaScript Foreach
+								var option = new Option(item,item);
+								$('#time').append($(option));
+							});
+                        },
+                        error: function (xhr, status, error) {
+                            // Code to run if the request fails.
+                            console.error('Form submission failed: ' + error);
+                        }
+                    });
+            });
+
+            //Submit event for the form
+            $('#bookTable').on('submit', function (e) {
+                e.preventDefault();
+
+                let isValid = validateForm();
+                if (isValid) {
+                    // Serialize the form data.
+                    var formDataArray = $(this).serializeArray();//param1=a&param2=b
+                    console.info(formDataArray);
+                    // Convert the array to a JSON object
+                    var formDataObject = {};
+                    $.each(formDataArray, function (index, item) {
+                        formDataObject[item.name] = item.value;
+                    });
+                    console.info(formDataObject);
+
+                    // Perform the AJAX request.
+                    $.ajax({
+                        type: 'POST', // Method to use (POST, GET, etc.)
+                        url: 'http://localhost:1337/mu/booking', // The server endpoint to send the form data
+                        data: JSON.stringify(formDataObject), // The serialized form data
+                        contentType: 'application/json',
+                        success: function (response) {
+                            // {"success":true,"message":"Booking added successfully"}
+                            if(response.success) {
+                                $('#booking-successfull').removeClass('d-none');
+                                $('#booking-error').addClass('d-none');
+                            } else {
+                                $('#booking-error').removeClass('d-none');
+                                $('#booking-successfull').addClass('d-none');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            // Code to run if the request fails.
+                            console.error('Form submission failed: ' + error);
+                        }
+                    });
+                }
+
+            });
+        });
+    </script>
+</body>
+
+</html>
